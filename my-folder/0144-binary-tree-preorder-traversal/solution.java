@@ -16,6 +16,30 @@
 class Solution {
     public List<Integer> preorderTraversal(TreeNode root) {
 
+        // ---Morris---
+        // ---Morris---
+        List<Integer> result = new ArrayList<>();
+        TreeNode curr = root;
+        while(curr != null) {
+            if(curr.left == null) {
+                result.add(curr.val);
+                curr = curr.right;
+            } else {
+                TreeNode next = curr.left;
+                while(next.right != null && next.right != curr) 
+                    next = next.right;
+                if(next.right == null) {
+                    next.right = curr;
+                    result.add(curr.val);
+                    curr = curr.left;
+                } else {
+                    next.right = null;
+                    curr = curr.right;
+                }
+            }
+        }
+        return result;
+
         // ---Recursive---
         /*List<Integer> elems = new ArrayList<>();
         if(root == null) return elems;
@@ -25,7 +49,7 @@ class Solution {
         return elems;*/
 
         // ---Iterative---
-        List<Integer> result = new ArrayList<>();
+        /*List<Integer> result = new ArrayList<>();
         if(root == null) return result;
         List<TreeNode> stack = new ArrayList<>();
         stack.add(root);
@@ -42,6 +66,6 @@ class Solution {
                 top++;
             }
         }
-        return result;
+        return result;*/
     }
 }
