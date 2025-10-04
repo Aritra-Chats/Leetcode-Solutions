@@ -28,8 +28,15 @@ class Solution {
             if(tree.right != null) children.add(tree.right.val);
         }
         TreeNode root = null;
+        boolean found = false;
         for(TreeNode tree : trees) {
-            if(!children.contains(tree.val)) root = tree;
+            if(!children.contains(tree.val)) {
+                if(!found) {
+                    root = tree;
+                    found = true;
+                }
+                else return null;
+            }
         }
         if(root == null) return null;
         if(!merge(root, root)) return null;
