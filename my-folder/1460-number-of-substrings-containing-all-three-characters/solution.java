@@ -1,19 +1,11 @@
 class Solution {
     public int numberOfSubstrings(String s) {
-        HashMap<Character, Integer> freqMap = new HashMap<>();
-        int len = s.length(), i = 0, j = 0, count = 0;
-        while(j < len) {
-            char ch = s.charAt(j);
-            freqMap.put(ch, freqMap.getOrDefault(ch, 0) + 1);
-            while(freqMap.size() == 3) {
-                count += len - j;
-                char rem = s.charAt(i);
-                freqMap.put(rem, freqMap.get(rem) - 1);
-                if(freqMap.get(rem) == 0) 
-                    freqMap.remove(rem);
-                i++;
-            }
-            j++;
+        int[] lastSeen = new int[]{-1, -1, -1};
+        int len = s.length(), count = 0;
+        for(int i = 0; i < len; i++) {
+            lastSeen[s.charAt(i) - 'a'] = i;
+            if(lastSeen[0] != -1 && lastSeen[1] != -1 && lastSeen[2] != -1) 
+                count += Math.min(lastSeen[0], Math.min(lastSeen[1], lastSeen[2])) + 1;
         }
         return count;
     }
