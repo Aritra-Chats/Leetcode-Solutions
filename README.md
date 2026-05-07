@@ -114,7 +114,7 @@ Each problem directory generally includes:
 
 This repository includes a GitHub Actions workflow that can sync LeetCode submissions and auto-organize them into topic folders.
 
-- Workflow file: [`/.github/workflows/sync_leetcode.yml`](./.github/workflows/sync_leetcode.yml)
+- Workflow file: [`./.github/workflows/sync_leetcode.yml`](./.github/workflows/sync_leetcode.yml)
 - Triggered by:
   - Manual dispatch
   - Weekly schedule
