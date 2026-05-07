@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-      FINAL_FOLDER: my-folder
       STAGING_FOLDER: .leetcode-sync-staging
 
     steps:
@@ -49,7 +48,7 @@ jobs:
 
           workspace = pathlib.Path(os.environ["GITHUB_WORKSPACE"])
           staging_root = workspace / os.environ["STAGING_FOLDER"]
-          final_root = workspace / os.environ["FINAL_FOLDER"]
+          final_root = workspace
 
           category_rules = [
               (
@@ -234,7 +233,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add "$FINAL_FOLDER" "$STAGING_FOLDER" 2>/dev/null || git add "$FINAL_FOLDER"
+          git add "$STAGING_FOLDER" 2>/dev/null
+          # Stage all topic folders that now sit at the repo root
+          git add arrays binary-search binary-tree dynamic-programming graphs \
+                  greedy linked-list math recursion-and-backtracking \
+                  sliding-window stack-and-queue strings 2>/dev/null || true
 
           if git diff --cached --quiet; then
             echo "No reorganization changes to commit."
