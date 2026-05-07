@@ -5,17 +5,241 @@ on:
   schedule:
     - cron: "0 8 * * 6"
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      FINAL_FOLDER: my-folder
+      STAGING_FOLDER: .leetcode-sync-staging
 
     steps:
-      - name: Sync
+      - name: Sync to staging
         uses: joshcai/leetcode-sync@v1.7
         with:
           github-token: ${{ github.token }}
           leetcode-csrf-token: ${{ secrets.LEETCODE_CSRF_TOKEN }}
           leetcode-session: ${{ secrets.LEETCODE_SESSION }}
-          destination-folder: my-folder
+          destination-folder: ${{ env.STAGING_FOLDER }}
           verbose: true
           commit-header: "[LeetCode Sync]"
+
+      - name: Checkout latest default branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEFAULT_BRANCH }}
+          fetch-depth: 0
+
+      - name: Organize synced solutions by topic
+        env:
+          LEETCODE_CSRF_TOKEN: ${{ secrets.LEETCODE_CSRF_TOKEN }}
+          LEETCODE_SESSION: ${{ secrets.LEETCODE_SESSION }}
+        run: |
+          python <<'PY'
+          import json
+          import os
+          import pathlib
+          import re
+          import shutil
+          import urllib.error
+          import urllib.request
+
+          workspace = pathlib.Path(os.environ["GITHUB_WORKSPACE"])
+          staging_root = workspace / os.environ["STAGING_FOLDER"]
+          final_root = workspace / os.environ["FINAL_FOLDER"]
+
+          category_rules = [
+              (
+                  "dynamic-programming",
+                  {"dynamic-programming", "bitmask", "memoization", "game-theory"},
+              ),
+              (
+                  "graphs",
+                  {
+                      "graph",
+                      "breadth-first-search",
+                      "depth-first-search",
+                      "topological-sort",
+                      "shortest-path",
+                      "minimum-spanning-tree",
+                      "strongly-connected-component",
+                      "union-find",
+                  },
+              ),
+              (
+                  "binary-tree",
+                  {"tree", "binary-tree", "binary-search-tree"},
+              ),
+              (
+                  "linked-list",
+                  {"linked-list", "doubly-linked-list"},
+              ),
+              (
+                  "stack-and-queue",
+                  {
+                      "stack",
+                      "queue",
+                      "monotonic-stack",
+                      "monotonic-queue",
+                      "heap-priority-queue",
+                      "design",
+                  },
+              ),
+              ("sliding-window", {"sliding-window"}),
+              ("binary-search", {"binary-search"}),
+              ("greedy", {"greedy"}),
+              (
+                  "recursion-and-backtracking",
+                  {"recursion", "backtracking", "divide-and-conquer"},
+              ),
+              (
+                  "strings",
+                  {"string", "trie", "string-matching", "rolling-hash", "suffix-array"},
+              ),
+              (
+                  "math",
+                  {
+                      "math",
+                      "number-theory",
+                      "combinatorics",
+                      "probability-and-statistics",
+                      "brainteaser",
+                      "bit-manipulation",
+                  },
+              ),
+              (
+                  "arrays",
+                  {
+                      "array",
+                      "matrix",
+                      "hash-table",
+                      "sorting",
+                      "counting",
+                      "enumeration",
+                      "prefix-sum",
+                      "simulation",
+                      "two-pointers",
+                  },
+              ),
+          ]
+
+          keyword_fallbacks = [
+              ("linked-list", ("linked-list", "lru-cache", "lfu-cache")),
+              ("binary-tree", ("tree", "bst", "binary-tree")),
+              ("graphs", ("graph", "course-schedule", "network", "path", "island")),
+              ("sliding-window", ("window",)),
+              ("binary-search", ("search", "sqrt", "ship", "divisor")),
+              ("dynamic-programming", ("subsequence", "partition", "fibonacci")),
+              ("greedy", ("jump-game", "cookies", "candy")),
+              ("stack-and-queue", ("stack", "queue", "parentheses", "histogram")),
+              ("strings", ("string", "substring", "palindrome", "anagram")),
+              ("math", ("integer", "number", "pow")),
+          ]
+
+          def fetch_topic_tags(title_slug: str) -> list[str]:
+              payload = json.dumps(
+                  {
+                      "query": """
+                          query questionTopicTags($titleSlug: String!) {
+                            question(titleSlug: $titleSlug) {
+                              topicTags {
+                                slug
+                              }
+                            }
+                          }
+                      """,
+                      "variables": {"titleSlug": title_slug},
+                  }
+              ).encode("utf-8")
+
+              headers = {
+                  "Content-Type": "application/json",
+                  "Origin": "https://leetcode.com",
+                  "Referer": f"https://leetcode.com/problems/{title_slug}/",
+                  "User-Agent": "github-actions-leetcode-sync",
+              }
+
+              session = os.environ.get("LEETCODE_SESSION")
+              csrf = os.environ.get("LEETCODE_CSRF_TOKEN")
+              if session and csrf:
+                  headers["Cookie"] = f"LEETCODE_SESSION={session}; csrftoken={csrf}"
+                  headers["x-csrftoken"] = csrf
+
+              request = urllib.request.Request(
+                  "https://leetcode.com/graphql",
+                  data=payload,
+                  headers=headers,
+                  method="POST",
+              )
+
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  data = json.load(response)
+
+              question = data.get("data", {}).get("question")
+              if not question:
+                  return []
+
+              return [tag["slug"] for tag in question.get("topicTags", []) if tag.get("slug")]
+
+          def map_category(title_slug: str, topic_tags: list[str]) -> str:
+              topic_set = set(topic_tags)
+              for category, supported_tags in category_rules:
+                  if topic_set & supported_tags:
+                      return category
+
+              for category, keywords in keyword_fallbacks:
+                  if any(keyword in title_slug for keyword in keywords):
+                      return category
+
+              return "arrays"
+
+          if not staging_root.exists():
+              print("No staging folder found; nothing to organize.")
+              raise SystemExit(0)
+
+          final_root.mkdir(parents=True, exist_ok=True)
+
+          for problem_dir in sorted(path for path in staging_root.iterdir() if path.is_dir()):
+              title_slug = re.sub(r"^\d+-", "", problem_dir.name)
+
+              try:
+                  topic_tags = fetch_topic_tags(title_slug)
+              except urllib.error.URLError as exc:
+                  print(f"Falling back to keyword mapping for {problem_dir.name}: {exc}")
+                  topic_tags = []
+
+              category = map_category(title_slug, topic_tags)
+              destination_dir = final_root / category / problem_dir.name
+              destination_dir.parent.mkdir(parents=True, exist_ok=True)
+
+              for existing_dir in final_root.glob(f"*/{problem_dir.name}"):
+                  if existing_dir != destination_dir and existing_dir.is_dir():
+                      shutil.rmtree(existing_dir)
+
+              if destination_dir.exists():
+                  shutil.rmtree(destination_dir)
+
+              shutil.move(str(problem_dir), str(destination_dir))
+              print(f"{problem_dir.name} -> {category}")
+
+          if staging_root.exists():
+              shutil.rmtree(staging_root)
+          PY
+
+      - name: Commit reorganized solutions
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add "$FINAL_FOLDER" "$STAGING_FOLDER" 2>/dev/null || git add "$FINAL_FOLDER"
+
+          if git diff --cached --quiet; then
+            echo "No reorganization changes to commit."
+            exit 0
+          fi
+
+          git commit -m "[LeetCode Sync] Organize synced solutions by DSA topic"
+          git push origin "HEAD:${DEFAULT_BRANCH}"
