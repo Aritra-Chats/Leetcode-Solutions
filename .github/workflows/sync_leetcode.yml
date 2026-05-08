@@ -215,7 +215,7 @@ jobs:
               destination_dir.parent.mkdir(parents=True, exist_ok=True)
 
               for existing_dir in final_root.glob(f"*/{problem_dir.name}"):
-                  if existing_dir != destination_dir and existing_dir.is_dir():
+                  if existing_dir != destination_dir and existing_dir != problem_dir and existing_dir.is_dir():
                       shutil.rmtree(existing_dir)
 
               if destination_dir.exists():
