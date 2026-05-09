@@ -1,8 +1,9 @@
 class Solution {
     public int singleNumber(int[] nums) {
-        int missing = 0;
+        if(nums.length == 1) return nums[0];
+        int xor = 0;
         for(int num : nums)
-            missing ^= num;
-        return missing;
+            xor ^= num;
+        return xor;
     }
 }
