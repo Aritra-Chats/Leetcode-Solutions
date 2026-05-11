@@ -16,10 +16,10 @@ jobs:
       STAGING_FOLDER: .leetcode-sync-staging
 
     steps:
-      - name: Refresh LeetCode CSRF token
-        id: refresh_csrf
+      - name: Check CSRF token
         env:
           LEETCODE_SESSION: ${{ secrets.LEETCODE_SESSION }}
+          LEETCODE_CSRF_TOKEN: ${{ secrets.LEETCODE_CSRF_TOKEN }}
         run: |
           set -euo pipefail
 
@@ -28,32 +28,17 @@ jobs:
             exit 1
           fi
 
-          cookies_file="$(mktemp)"
-          curl -sS -L \
-            -c "$cookies_file" \
-            -b "LEETCODE_SESSION=${LEETCODE_SESSION}" \
-            -H "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
-            -o /dev/null \
-            "https://leetcode.com/"
-
-          csrf_token="$(
-            grep -i 'csrftoken' "$cookies_file" \
-              | grep -v '^#' \
-              | awk '{print $NF}' \
-              | head -n 1
-          )"
-
-          if [ -z "${csrf_token:-}" ]; then
-            echo "::error::Could not derive LeetCode CSRF token. Update LEETCODE_SESSION secret."
+          if [ -z "${LEETCODE_CSRF_TOKEN:-}" ]; then
+            echo "::error::Missing LEETCODE_CSRF_TOKEN secret. Please add a valid CSRF token to the repository secrets."
             exit 1
           fi
 
-          echo "csrf_token=${csrf_token}" >> "$GITHUB_OUTPUT"
+          echo "::notice::LEETCODE_CSRF_TOKEN is set. LeetCode CSRF tokens expire periodically — if the sync fails with an auth error, please update the LEETCODE_CSRF_TOKEN repository secret with a fresh token."
 
       - name: Validate LeetCode auth
         env:
           LEETCODE_SESSION: ${{ secrets.LEETCODE_SESSION }}
-          LEETCODE_CSRF_TOKEN: ${{ steps.refresh_csrf.outputs.csrf_token }}
+          LEETCODE_CSRF_TOKEN: ${{ secrets.LEETCODE_CSRF_TOKEN }}
         run: |
           python <<'PY'
           import json
@@ -123,7 +108,7 @@ jobs:
         uses: joshcai/leetcode-sync@v1.7
         with:
           github-token: ${{ github.token }}
-          leetcode-csrf-token: ${{ steps.refresh_csrf.outputs.csrf_token }}
+          leetcode-csrf-token: ${{ secrets.LEETCODE_CSRF_TOKEN }}
           leetcode-session: ${{ secrets.LEETCODE_SESSION }}
           destination-folder: ${{ env.STAGING_FOLDER }}
           verbose: true
