@@ -16,11 +16,111 @@ jobs:
       STAGING_FOLDER: .leetcode-sync-staging
 
     steps:
+      - name: Refresh LeetCode CSRF token
+        id: refresh_csrf
+        env:
+          LEETCODE_SESSION: ${{ secrets.LEETCODE_SESSION }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${LEETCODE_SESSION:-}" ]; then
+            echo "::error::Missing LEETCODE_SESSION secret."
+            exit 1
+          fi
+
+          headers_file="$(mktemp)"
+          curl -sS -D "$headers_file" -o /dev/null \
+            -H "Cookie: LEETCODE_SESSION=${LEETCODE_SESSION}" \
+            "https://leetcode.com/"
+
+          csrf_token="$(
+            grep -i '^set-cookie:' "$headers_file" \
+              | tr -d '\r' \
+              | sed -n 's/^set-cookie: csrftoken=\([^;]*\).*/\1/ip' \
+              | head -n 1
+          )"
+
+          if [ -z "${csrf_token:-}" ]; then
+            echo "::error::Could not derive LeetCode CSRF token. Update LEETCODE_SESSION secret."
+            exit 1
+          fi
+
+          echo "csrf_token=${csrf_token}" >> "$GITHUB_OUTPUT"
+
+      - name: Validate LeetCode auth
+        env:
+          LEETCODE_SESSION: ${{ secrets.LEETCODE_SESSION }}
+          LEETCODE_CSRF_TOKEN: ${{ steps.refresh_csrf.outputs.csrf_token }}
+        run: |
+          python <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.request
+
+          session = os.environ.get("LEETCODE_SESSION", "")
+          csrf = os.environ.get("LEETCODE_CSRF_TOKEN", "")
+
+          payload = json.dumps(
+              {
+                  "query": """
+                      query ($offset: Int!, $limit: Int!, $slug: String) {
+                        submissionList(offset: $offset, limit: $limit, questionSlug: $slug) {
+                          hasNext
+                          submissions {
+                            id
+                          }
+                        }
+                      }
+                  """,
+                  "variables": {"offset": 0, "limit": 1, "slug": None},
+              }
+          ).encode("utf-8")
+
+          headers = {
+              "Content-Type": "application/json",
+              "Origin": "https://leetcode.com",
+              "Referer": "https://leetcode.com/",
+              "Cookie": f"LEETCODE_SESSION={session}; csrftoken={csrf}",
+              "x-csrftoken": csrf,
+          }
+
+          request = urllib.request.Request(
+              "https://leetcode.com/graphql/",
+              data=payload,
+              headers=headers,
+              method="POST",
+          )
+
+          try:
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  body = json.load(response)
+          except Exception as exc:
+              print(f"::error::LeetCode auth precheck request failed: {exc}")
+              sys.exit(1)
+
+          submissions = (
+              body.get("data", {})
+              .get("submissionList", {})
+              .get("submissions")
+          )
+
+          if not isinstance(submissions, list):
+              print(
+                  "::error::LeetCode auth appears invalid/expired. "
+                  "Please update LEETCODE_SESSION in repository secrets."
+              )
+              errors = body.get("errors")
+              if errors:
+                  print(f"LeetCode API errors: {errors}")
+              sys.exit(1)
+          PY
+
       - name: Sync to staging
         uses: joshcai/leetcode-sync@v1.7
         with:
           github-token: ${{ github.token }}
-          leetcode-csrf-token: ${{ secrets.LEETCODE_CSRF_TOKEN }}
+          leetcode-csrf-token: ${{ steps.refresh_csrf.outputs.csrf_token }}
           leetcode-session: ${{ secrets.LEETCODE_SESSION }}
           destination-folder: ${{ env.STAGING_FOLDER }}
           verbose: true
