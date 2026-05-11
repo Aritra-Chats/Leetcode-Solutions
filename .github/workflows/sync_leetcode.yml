@@ -28,15 +28,18 @@ jobs:
             exit 1
           fi
 
-          headers_file="$(mktemp)"
-          curl -sS -D "$headers_file" -o /dev/null \
-            -H "Cookie: LEETCODE_SESSION=${LEETCODE_SESSION}" \
+          cookies_file="$(mktemp)"
+          curl -sS -L \
+            -c "$cookies_file" \
+            -b "LEETCODE_SESSION=${LEETCODE_SESSION}" \
+            -H "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
+            -o /dev/null \
             "https://leetcode.com/"
 
           csrf_token="$(
-            grep -i '^set-cookie:' "$headers_file" \
-              | tr -d '\r' \
-              | sed -n 's/^set-cookie: csrftoken=\([^;]*\).*/\1/ip' \
+            grep -i 'csrftoken' "$cookies_file" \
+              | grep -v '^#' \
+              | awk '{print $NF}' \
               | head -n 1
           )"
 
