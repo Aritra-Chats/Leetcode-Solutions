@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   build:
@@ -247,21 +248,28 @@ jobs:
               shutil.rmtree(staging_root)
           PY
 
-      - name: Commit reorganized solutions
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add "$STAGING_FOLDER" 2>/dev/null
-          # Stage all topic folders that now sit at the repo root
-          git add arrays binary-search binary-tree dynamic-programming graphs \
-                  greedy linked-list math recursion-and-backtracking \
-                  sliding-window stack-and-queue strings 2>/dev/null || true
-
-          if git diff --cached --quiet; then
-            echo "No reorganization changes to commit."
-            exit 0
-          fi
-
-          git commit -m "[LeetCode Sync] Organize synced solutions by DSA topic"
-          git push origin "HEAD:${DEFAULT_BRANCH}"
+      - name: Create pull request with reorganized solutions
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ github.token }}
+          commit-message: "[LeetCode Sync] Organize synced solutions by DSA topic"
+          title: "[LeetCode Sync] Organize synced solutions by DSA topic"
+          body: |
+            This PR contains the latest synced LeetCode solutions, reorganized by topic.
+            Please review and adjust folder/topic placement as needed before merging.
+          branch: leetcode-sync/reorganized-solutions
+          base: ${{ env.DEFAULT_BRANCH }}
+          add-paths: |
+            arrays
+            binary-search
+            binary-tree
+            dynamic-programming
+            graphs
+            greedy
+            linked-list
+            math
+            recursion-and-backtracking
+            sliding-window
+            stack-and-queue
+            strings
+          delete-branch: true
