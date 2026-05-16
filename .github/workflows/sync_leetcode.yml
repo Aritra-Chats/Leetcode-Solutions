@@ -248,10 +248,20 @@ jobs:
               shutil.rmtree(staging_root)
           PY
 
+      - name: Validate PR token secret
+        env:
+          LEETCODE_SYNC_TOKEN: ${{ secrets.LEETCODE_SYNC_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${LEETCODE_SYNC_TOKEN:-}" ]; then
+            echo "::error::Missing LEETCODE_SYNC_TOKEN secret. Add a Personal Access Token secret with repo permissions so this workflow can create pull requests when GitHub Actions PR creation is disabled for GITHUB_TOKEN."
+            exit 1
+          fi
+
       - name: Create pull request with reorganized solutions
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ github.token }}
+          token: ${{ secrets.LEETCODE_SYNC_TOKEN }}
           commit-message: "[LeetCode Sync] Organize synced solutions by DSA topic"
           title: "[LeetCode Sync] Organize synced solutions by DSA topic"
           body: |
