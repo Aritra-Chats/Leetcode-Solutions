@@ -16,9 +16,8 @@ class Twitter {
     }
     
     public List<Integer> getNewsFeed(int userId) {
-        if((!following.containsKey(userId) || following.get(userId).size() == 0) && !tweet.containsKey(userId)) {
+        if((!following.containsKey(userId) || following.get(userId).size() == 0) && !tweet.containsKey(userId))
             return tweet.getOrDefault(userId, new ArrayList<>());
-        }
         int postCount = 0;
         List<Integer> newsFeed = new ArrayList<>();
         List<int[]> latestTweets = new ArrayList<>();
@@ -39,9 +38,8 @@ class Twitter {
     }
     
     public void unfollow(int followerId, int followeeId) {
-        if(!following.containsKey(followerId) || !following.get(followerId).contains(followeeId))
-            return;
-        following.get(followerId).remove(followeeId);
+        if(following.containsKey(followerId) && following.get(followerId).contains(followeeId))
+            following.get(followerId).remove(followeeId);
     }
 }
 

@@ -2,12 +2,12 @@ class Solution {
     private boolean isValid(int row, int col, int[] assigned) {
         for(int prevRow = 0; prevRow < row; prevRow++) {
             int prevCol = assigned[prevRow];
-            if(prevRow == row || prevCol == col || Math.abs(row - prevRow) == Math.abs(col - prevCol))
+            if(prevCol == col || Math.abs(row - prevRow) == Math.abs(col - prevCol))
                 return false;
         }
         return true;
     }
-    private void assignQueens(int row, int prev, String[] rows, int n, List<String> iterator, List<List<String>> queens, int[] assigned) {
+    private void assignQueens(int row, String[] rows, int n, List<String> iterator, List<List<String>> queens, int[] assigned) {
         if(row == n) {
             queens.add(new ArrayList<>(iterator));
         }
@@ -16,7 +16,7 @@ class Solution {
                 continue;
             iterator.add(rows[col]);
             assigned[row] = col;
-            assignQueens(row + 1, row, rows, n, iterator, queens, assigned);
+            assignQueens(row + 1, rows, n, iterator, queens, assigned);
             assigned[row] = -1;
             iterator.remove(iterator.size() - 1);
         }
@@ -32,7 +32,7 @@ class Solution {
         List<List<String>> queens = new ArrayList<>();
         int[] assigned = new int[n];
         Arrays.fill(assigned, -1);
-        assignQueens(0, -1, rows, n, new ArrayList<>(), queens, assigned);
+        assignQueens(0, rows, n, new ArrayList<>(), queens, assigned);
         return queens;
     }
 }

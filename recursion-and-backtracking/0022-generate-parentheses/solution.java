@@ -1,35 +1,23 @@
 class Solution {
-
-    private void generate(int open, int close, int n,
-                          StringBuilder curr,
-                          List<String> result) {
-
-        if (curr.length() == 2 * n) {
-            result.add(curr.toString());
+    private void genValidParenthesis(int open, int close, int n, StringBuilder sb, List<String> parenthesis) {
+        if(open == n && close == n) {
+            parenthesis.add(sb.toString());
             return;
         }
-
-        // Add '('
-        if (open < n) {
-            curr.append('(');
-            generate(open + 1, close, n, curr, result);
-            curr.deleteCharAt(curr.length() - 1); // backtrack
+        if(open < n) {
+            sb.append("(");
+            genValidParenthesis(open + 1, close, n, sb, parenthesis);
+            sb.deleteCharAt(sb.length() - 1);
         }
-
-        // Add ')'
-        if (close < open) {
-            curr.append(')');
-            generate(open, close + 1, n, curr, result);
-            curr.deleteCharAt(curr.length() - 1); // backtrack
+        if(close < open) {
+            sb.append(")");
+            genValidParenthesis(open, close + 1, n, sb, parenthesis);
+            sb.deleteCharAt(sb.length() - 1);
         }
     }
-
     public List<String> generateParenthesis(int n) {
-
-        List<String> result = new ArrayList<>();
-
-        generate(0, 0, n, new StringBuilder(), result);
-
-        return result;
+        List<String> parenthesis = new ArrayList<>();
+        genValidParenthesis(0, 0, n, new StringBuilder(), parenthesis);
+        return parenthesis;
     }
 }
