@@ -3,18 +3,18 @@ class Solution {
         int total = 0;
         for(int num : nums)
             total += num;
-        if(total % 2 != 0)
-            return false;
+        if(total % 2 != 0) return false;
         int target = total / 2, len = nums.length;
-        boolean[] prev = new boolean[target+1];
-        prev[0] = true;
+        boolean[] dp = new boolean[target+1];
+        dp[0] = true;
         for(int i = 1; i <= len; i++) {
-            boolean[] temp = new boolean[target+1];
-            temp[0] = true;
-            for(int s = 1; s <= target; s++)
-                temp[s] = (nums[i-1] <= s) ? (prev[s] || prev[s-nums[i-1]]) : prev[s];
-            prev = temp;
+            for(int j = target; j > 0; j--) {
+                if(nums[i-1] <= j)
+                    dp[j] = dp[j] || dp[j-nums[i-1]];
+                else
+                    dp[j] = dp[j];
+            }
         }
-        return prev[target];
+        return dp[target];
     }
 }
