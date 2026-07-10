@@ -1,6 +1,6 @@
 class Solution {
     /*
-    private int calcFibMemo(int n, int[] dp) {
+    private int calcFib(int n, int[] dp) {
         if(dp[n] == -1)
             dp[n] = calcFib(n - 1, dp) + calcFib(n - 2, dp);
         return dp[n];
@@ -10,13 +10,13 @@ class Solution {
         // Space Optimized 
         if(n <= 1)
             return n;
-        int prev = 1, prev1 = 0, curr = 1;
+        int prev = 1, prev1 = 0;
         for(int i = 2; i <= n; i++) {
-            curr = prev + prev1;
+            int curr = prev + prev1;
             prev1 = prev;
             prev = curr;
         }
-        return curr;
+        return prev;
 
         /* Tabulation
         if(n <= 1)
@@ -36,7 +36,7 @@ class Solution {
         Arrays.fill(dp, -1);
         dp[0] = 0;
         dp[1] = 1;
-        return calcFibMemo(n, dp);
+        return calcFib(n, dp);
         */
 
         /* Recursion
