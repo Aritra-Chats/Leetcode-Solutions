@@ -76,7 +76,11 @@ jobs:
           import urllib.request
 
           workspace = pathlib.Path(os.environ["GITHUB_WORKSPACE"])
-          staging_root = workspace / os.environ["STAGING_FOLDER"]
+          primary_staging_root = workspace / os.environ["STAGING_FOLDER"]
+          fallback_restore_paths = [
+              workspace / "leetcode",
+              workspace / "LeetCode",
+          ]
           final_root = workspace
           dsa_root = final_root / "DSA"
           sql_root = final_root / "SQL"
@@ -230,6 +234,16 @@ jobs:
               if "database" in topic_tags:
                   return True
               return any(problem_path.glob("*.sql"))
+
+          staging_root = primary_staging_root
+          if not staging_root.exists():
+              for fallback_path in fallback_restore_paths:
+                  if fallback_path.exists() and fallback_path.is_dir():
+                      staging_root = fallback_path
+                      print(
+                          f"Primary staging folder not found, using fallback restore path: {fallback_path.name}"
+                      )
+                      break
 
           if not staging_root.exists():
               print("No staging folder found; nothing to organize.")
