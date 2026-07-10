@@ -37,6 +37,8 @@ jobs:
           echo "::notice::LEETCODE_CSRF_TOKEN is set. LeetCode CSRF tokens expire periodically — if the sync fails with an auth error, please update the LEETCODE_CSRF_TOKEN repository secret with a fresh token."
 
       - name: Sync to staging
+        id: sync_to_staging
+        continue-on-error: true
         uses: joshcai/leetcode-sync@v1.7
         with:
           github-token: ${{ github.token }}
@@ -46,13 +48,20 @@ jobs:
           verbose: true
           commit-header: "[LeetCode Sync]"
 
+      - name: Report sync failure without failing workflow
+        if: steps.sync_to_staging.outcome != 'success'
+        run: |
+          echo "::warning::LeetCode sync failed. This commonly happens when LEETCODE_SESSION or LEETCODE_CSRF_TOKEN has expired. Update repository secrets and re-run the workflow."
+
       - name: Checkout latest default branch
+        if: steps.sync_to_staging.outcome == 'success'
         uses: actions/checkout@v4
         with:
           ref: ${{ env.DEFAULT_BRANCH }}
           fetch-depth: 0
 
       - name: Organize synced solutions by topic
+        if: steps.sync_to_staging.outcome == 'success'
         env:
           LEETCODE_CSRF_TOKEN: ${{ secrets.LEETCODE_CSRF_TOKEN }}
           LEETCODE_SESSION: ${{ secrets.LEETCODE_SESSION }}
@@ -249,6 +258,7 @@ jobs:
           PY
 
       - name: Create pull request with reorganized solutions
+        if: steps.sync_to_staging.outcome == 'success'
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ github.token }}
