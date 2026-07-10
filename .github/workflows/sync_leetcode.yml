@@ -78,6 +78,8 @@ jobs:
           workspace = pathlib.Path(os.environ["GITHUB_WORKSPACE"])
           staging_root = workspace / os.environ["STAGING_FOLDER"]
           final_root = workspace
+          dsa_root = final_root / "DSA"
+          sql_root = final_root / "SQL"
 
           category_rules = [
               (
@@ -224,6 +226,11 @@ jobs:
 
               return "arrays"
 
+          def is_sql_problem(problem_path: pathlib.Path, topic_tags: list[str]) -> bool:
+              if "database" in topic_tags:
+                  return True
+              return any(problem_path.glob("*.sql"))
+
           if not staging_root.exists():
               print("No staging folder found; nothing to organize.")
               raise SystemExit(0)
@@ -239,19 +246,30 @@ jobs:
                   print(f"Falling back to keyword mapping for {problem_dir.name}: {exc}")
                   topic_tags = []
 
-              category = map_category(title_slug, topic_tags)
-              destination_dir = final_root / category / problem_dir.name
+              if is_sql_problem(problem_dir, topic_tags):
+                  destination_dir = sql_root / problem_dir.name
+                  destination_label = "SQL"
+              else:
+                  category = map_category(title_slug, topic_tags)
+                  destination_dir = dsa_root / category / problem_dir.name
+                  destination_label = f"DSA/{category}"
               destination_dir.parent.mkdir(parents=True, exist_ok=True)
 
-              for existing_dir in final_root.glob(f"*/{problem_dir.name}"):
-                  if existing_dir != destination_dir and existing_dir != problem_dir and existing_dir.is_dir():
+              for existing_dir in final_root.glob(f"**/{problem_dir.name}"):
+                  if (
+                      existing_dir != destination_dir
+                      and existing_dir != problem_dir
+                      and existing_dir.is_dir()
+                      and existing_dir != staging_root
+                      and staging_root not in existing_dir.parents
+                  ):
                       shutil.rmtree(existing_dir)
 
               if destination_dir.exists():
                   shutil.rmtree(destination_dir)
 
               shutil.move(str(problem_dir), str(destination_dir))
-              print(f"{problem_dir.name} -> {category}")
+              print(f"{problem_dir.name} -> {destination_label}")
 
           if staging_root.exists():
               shutil.rmtree(staging_root)
@@ -262,14 +280,16 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ github.token }}
-          commit-message: "[LeetCode Sync] Organize synced solutions by DSA topic"
-          title: "[LeetCode Sync] Organize synced solutions by DSA topic"
+          commit-message: "[LeetCode Sync] Organize synced solutions into DSA and SQL"
+          title: "[LeetCode Sync] Organize synced solutions into DSA and SQL"
           body: |
-            This PR contains the latest synced LeetCode solutions, reorganized by topic.
+            This PR contains the latest synced LeetCode solutions, reorganized into DSA topic folders and SQL.
             Please review and adjust folder/topic placement as needed before merging.
           branch: leetcode-sync/reorganized-solutions
           base: ${{ env.DEFAULT_BRANCH }}
           add-paths: |
+            DSA
+            SQL
             arrays
             binary-search
             binary-tree
