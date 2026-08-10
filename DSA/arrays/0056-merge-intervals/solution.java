@@ -1,15 +1,13 @@
 class Solution {
     public int[][] merge(int[][] intervals) {
-        if(intervals.length == 0 || intervals.length == 1) return intervals;
-        Arrays.sort(intervals, (a, b) -> (a[0] - b[0]));
-        int i = 0, j = 1;
-        while(j < intervals.length) {
-            if(intervals[i][1] >= intervals[j][0])
-                intervals[i][1] = Math.max(intervals[i][1], intervals[j][1]);
-            else 
-                intervals[++i] = intervals[j];
-            j++;
+        Arrays.sort(intervals, (a, b) ->  a[0]-b[0]);
+        List<int[]> merged = new ArrayList<>();
+        for(int[] interval : intervals) {
+            if(merged.isEmpty() || merged.get(merged.size()-1)[1] < interval[0])
+                merged.add(interval);
+            else
+                merged.get(merged.size()-1)[1] = Math.max(merged.get(merged.size()-1)[1], interval[1]);
         }
-        return Arrays.copyOfRange(intervals, 0, i+1);
+        return merged.toArray(new int[merged.size()][]);
     }
 }
