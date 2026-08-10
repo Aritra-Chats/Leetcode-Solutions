@@ -301,19 +301,4 @@ jobs:
             Please review and adjust folder/topic placement as needed before merging.
           branch: leetcode-sync/reorganized-solutions
           base: ${{ env.DEFAULT_BRANCH }}
-          add-paths: |
-            DSA
-            SQL
-            arrays
-            binary-search
-            binary-tree
-            dynamic-programming
-            graphs
-            greedy
-            linked-list
-            math
-            recursion-and-backtracking
-            sliding-window
-            stack-and-queue
-            strings
           delete-branch: true
