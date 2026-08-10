@@ -1,25 +1,15 @@
 class Solution {
-    private int lowerBound(int[] temp, int size, int target) {
-        int low = 0, high = size;
-        while(low < high) {
-            int mid = (low + high) / 2;
-            if(temp[mid] >= target)
-                high = mid;
-            else
-                low = mid + 1;
-        }
-        return low;
-    }
     public int lengthOfLIS(int[] nums) {
-        int len = nums.length, size = 1;
-        int[] temp = new int[len];
-        temp[0] = nums[0];
-        for(int i = 1; i < len; i++) {
-            if(nums[i] > temp[size-1])
-                temp[size++] = nums[i];
-            else 
-                temp[lowerBound(temp, size, nums[i])] = nums[i];
+        int len = nums.length;
+        int[][] dp = new int[len+1][len+1];
+        for(int i = len-1; i >= 0; i--) {
+            for(int p = i-1; p >= -1; p--) {
+                if(p == -1 || nums[i] > nums[p]) 
+                    dp[i][p+1] = Math.max(dp[i+1][p+1], 1 + dp[i+1][i+1]);
+                else
+                    dp[i][p+1] = dp[i+1][p+1];
+            }
         }
-        return size;
+        return dp[0][0];
     }
 }
