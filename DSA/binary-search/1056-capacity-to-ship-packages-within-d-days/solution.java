@@ -1,37 +1,28 @@
 class Solution {
-    public int max(int[] weights) {
-        int max = weights[0];
-        for(int i = 1; i < weights.length; i++) {
-            max = Math.max(max, weights[i]);
+    private boolean isShippable(int mid, int[] weights, int days) {
+        int count = 1, totalWeight = 0;
+        for(int weight : weights) {
+            if(totalWeight + weight > mid) {
+                count++;
+                totalWeight = 0;
+            }
+            totalWeight += weight;
         }
-        return max;
+        return count <= days;
     }
-    public int sum(int[] weights) {
-        int sum = 0;
-        for(int weight : weights) 
-            sum += weight;
-        return sum;
-    }
-    public boolean isEnoughCapacity(int[] weights, int days, int capacity) {
-        int remainingDays = days, sum = 0;
-        for(int i = 0; i < weights.length; i++) {
-            if(sum + weights[i] > capacity) {
-                remainingDays--;
-                sum = weights[i];
-            } else
-                sum += weights[i];
-        }
-        remainingDays--;
-        return (remainingDays >= 0);
-    }
+
     public int shipWithinDays(int[] weights, int days) {
-        int low = max(weights), high = sum(weights);
-        while(low < high) {
-            int mid = low+(high-low)/2;
-            if(isEnoughCapacity(weights, days, mid))
+        int low = 0, high = 0;
+        for(int weight : weights) {
+            low = Math.max(low, weight);
+            high += weight;
+        }
+        while(high - low > 0) {
+            int mid = low + (high - low) / 2;
+            if(isShippable(mid, weights, days))
                 high = mid;
             else
-                low = mid+1;
+                low = mid + 1;
         }
         return high;
     }

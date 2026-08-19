@@ -1,12 +1,15 @@
 class Solution {
     public int search(int[] nums, int target) {
-        int l = 0; int h = nums.length-1;
-        while(l <= h) {
-            int m = l + (h-l) / 2;
-            if(target == nums[m]) return m;
-            else if(target > nums[m]) l = m+1;
-            else h = m-1;
-        }    
+        int low = 0, high = nums.length;
+        while(high - low > 0) {
+            int mid = low + (high - low) / 2;
+            if(nums[mid] == target)
+                return mid;
+            else if (nums[mid] < target)
+                low = mid + 1;
+            else
+                high = mid;
+        }
         return -1;
     }
 }
