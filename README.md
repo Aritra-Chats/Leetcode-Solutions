@@ -9,13 +9,13 @@ A curated collection of **LeetCode problem solutions** organized by **DSA topic*
 ---
 
 ## 📚 Table of Contents
-- [Repository Overview](#-repository-overview)
-- [Folder Structure](#-folder-structure)
-- [Topics Covered](#-topics-covered)
-- [Language Coverage](#-language-coverage)
-- [How to Use](#-how-to-use)
-- [Auto Sync Workflow](#-auto-sync-workflow)
-- [Contributing](#-contributing)
+- [Repository Overview](#repository-overview)
+- [Folder Structure](#folder-structure)
+- [Topics Covered](#topics-covered)
+- [Language Coverage](#language-coverage)
+- [How to Use](#how-to-use)
+- [Auto Sync Workflow](#auto-sync-workflow)
+- [Contributing](#contributing)
 
 ---
 
