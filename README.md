@@ -9,22 +9,22 @@ A curated collection of **LeetCode problem solutions** organized by **DSA topic*
 ---
 
 ## 📚 Table of Contents
-- [Repository Overview](#-repository-overview)
-- [Folder Structure](#-folder-structure)
-- [Topics Covered](#-topics-covered)
-- [Language Coverage](#-language-coverage)
-- [How to Use](#-how-to-use)
-- [Auto Sync Workflow](#-auto-sync-workflow)
-- [Contributing](#-contributing)
+- [Repository Overview](#repository-overview)
+- [Folder Structure](#folder-structure)
+- [Topics Covered](#topics-covered)
+- [Language Coverage](#language-coverage)
+- [How to Use](#how-to-use)
+- [Auto Sync Workflow](#auto-sync-workflow)
+- [Contributing](#contributing)
 
 ---
 
 ## 🔍 Repository Overview
 
-- ✅ **184 problems solved**
-- ✅ **12 topic buckets**
-- ✅ **187 solution files**
-- ✅ **Primary language:** Java (with C and C++ solutions as well)
+- ✅ **303 problems solved**
+- ✅ **13 topic buckets**
+- ✅ **305 solution files**
+- ✅ **Primary language:** Java (with C, C++, and SQL solutions as well)
 
 ---
 
@@ -32,18 +32,20 @@ A curated collection of **LeetCode problem solutions** organized by **DSA topic*
 
 ```text
 Leetcode-Solutions/
-├── arrays/
-├── binary-search/
-├── binary-tree/
-├── dynamic-programming/
-├── graphs/
-├── greedy/
-├── linked-list/
-├── math/
-├── recursion-and-backtracking/
-├── sliding-window/
-├── stack-and-queue/
-└── strings/
+├── DSA/
+│   ├── arrays/
+│   ├── binary-search/
+│   ├── binary-tree/
+│   ├── dynamic-programming/
+│   ├── graphs/
+│   ├── greedy/
+│   ├── linked-list/
+│   ├── math/
+│   ├── recursion-and-backtracking/
+│   ├── sliding-window/
+│   ├── stack-and-queue/
+│   └── strings/
+└── SQL/
 ```
 
 Each problem directory generally includes:
@@ -56,36 +58,38 @@ Each problem directory generally includes:
 
 | Topic | Problems |
 |---|---:|
-| Arrays | 39 |
-| Binary Search | 14 |
+| Arrays | 44 |
+| Binary Search | 22 |
 | Binary Tree | 32 |
-| Dynamic Programming | 7 |
-| Graphs | 26 |
-| Greedy | 5 |
-| Linked List | 18 |
-| Math | 2 |
-| Recursion & Backtracking | 3 |
-| Sliding Window | 6 |
-| Stack & Queue | 10 |
-| Strings | 22 |
+| Dynamic Programming | 27 |
+| Graphs | 32 |
+| Greedy | 9 |
+| Linked List | 21 |
+| Math | 11 |
+| Recursion & Backtracking | 14 |
+| Sliding Window | 14 |
+| Stack & Queue | 21 |
+| Strings | 21 |
+| SQL | 35 |
 
 <details>
   <summary><strong>Quick jump to topic folders</strong> (click to expand)</summary>
 
   <br/>
 
-  - [Arrays](./arrays)
-  - [Binary Search](./binary-search)
-  - [Binary Tree](./binary-tree)
-  - [Dynamic Programming](./dynamic-programming)
-  - [Graphs](./graphs)
-  - [Greedy](./greedy)
-  - [Linked List](./linked-list)
-  - [Math](./math)
-  - [Recursion and Backtracking](./recursion-and-backtracking)
-  - [Sliding Window](./sliding-window)
-  - [Stack and Queue](./stack-and-queue)
-  - [Strings](./strings)
+  - [Arrays](./DSA/arrays)
+  - [Binary Search](./DSA/binary-search)
+  - [Binary Tree](./DSA/binary-tree)
+  - [Dynamic Programming](./DSA/dynamic-programming)
+  - [Graphs](./DSA/graphs)
+  - [Greedy](./DSA/greedy)
+  - [Linked List](./DSA/linked-list)
+  - [Math](./DSA/math)
+  - [Recursion and Backtracking](./DSA/recursion-and-backtracking)
+  - [Sliding Window](./DSA/sliding-window)
+  - [Stack and Queue](./DSA/stack-and-queue)
+  - [Strings](./DSA/strings)
+  - [SQL](./SQL)
 </details>
 
 ---
@@ -94,8 +98,9 @@ Each problem directory generally includes:
 
 | Language | Files |
 |---|---:|
-| Java | 181 |
-| C++ | 3 |
+| Java | 265 |
+| SQL | 35 |
+| C++ | 2 |
 | C | 3 |
 
 ---
